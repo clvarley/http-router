@@ -1,0 +1,22 @@
+{
+    "home": {
+        "path":     "/",
+        "methods":  ["GET"],
+        "handler":  "Home::index"
+    },
+    "test": {
+        "path":     "/test",
+        "methods":  ["GET"],
+        "handler":  "Test::index"
+    },
+    "test_number": {
+        "path":     "/test/[i:number]",
+        "methods":  ["GET"],
+        "handler":  "Test::byNumber"
+    },
+    "test_string": {
+        "path":     "/test/[s:string]",
+        "methods":  ["GET"],
+        "handler":  "Test::byString"
+    }
+}
