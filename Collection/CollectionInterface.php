@@ -37,4 +37,12 @@ Interface CollectionInterface Extends \Iterator, \Countable
      */
     public function remove( string $name ) : void;
 
+    /**
+     * Compiles the regex for the given HTTP method
+     *
+     * @param string $method (Optional) HTTP method
+     * @return string        Compiled regex
+     */
+    public function compile( string $method = 'GET' ) : string;
+
 }
