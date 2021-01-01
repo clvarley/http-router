@@ -30,7 +30,10 @@ Class RouteCollection Implements CollectionInterface
     }
 
     /**
-     * @inheritdoc
+     * Compiles the regex for the given HTTP method
+     *
+     * @param string $method (Optional) HTTP method
+     * @return string        Compiled regex
      */
     public function compile( string $method = 'GET' ) : string
     {

@@ -11,29 +11,27 @@ Class CachedCollection Implements CollectionInterface
 {
 
     /**
-     * The contents of this collection
-     *
-     * @var Route[] $routes Route collection
-     */
-    protected $routes = [];
-
-    /**
      * Precompiled route regexes
      *
      * @var string[] $compiled Compiled regexes
      */
-    protected $compiled = [];
+    protected $compiled;
 
     /**
+     * Create a new collection wrapping pre-compiled regexes
      *
+     * @param string[] $compiled Compiled regexes
      */
-    public function __construct()
+    public function __construct( array $compiled = [] )
     {
-        // TODO:
+        $this->compile = $compiled;
     }
 
     /**
-     * @inheritdoc
+     * Returns the pre-compiled regex for the given HTTP method
+     *
+     * @param string $method (Optional) HTTP method
+     * @return string        Compiled regex
      */
     public function compile( string $method = 'GET' ) : string
     {
