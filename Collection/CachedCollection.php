@@ -18,10 +18,28 @@ Class CachedCollection Implements CollectionInterface
     protected $routes = [];
 
     /**
+     * Precompiled route regexes
+     *
+     * @var string[] $compiled Compiled regexes
+     */
+    protected $compiled = [];
+
+    /**
      *
      */
     public function __construct()
     {
         // TODO:
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function compile( string $method = 'GET' ) : string
+    {
+        return ( isset( $this->compiled[$method] )
+            ? $this->compiled[$method]
+            : ''
+        );
     }
 }
