@@ -2,6 +2,8 @@
 
 namespace Routing\Parser;
 
+use Routing\Collection\CollectionInterface;
+
 /**
  * Interface for classes that parse route files
  *
@@ -13,11 +15,9 @@ Interface ParserInterface
     /**
      * Parse the given routes file and return an array of routes
      *
-     * @throws \Routing\Exception\FileNotFoundException  File not found
-     * @throws \Routing\Exception\InvalidFileException   Invalid format
-     * @param  string $filename Path to file
-     * @return array            Routes array
+     * @param string $filename                          Path to file
+     * @return CollectionInterface                      Route collection
      */
-    public function parseFile( string $filename ) : array;
+    public function parse( string $filename ) : CollectionInterface;
 
 }
