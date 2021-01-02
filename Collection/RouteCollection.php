@@ -68,7 +68,7 @@ Class RouteCollection Implements CollectionInterface
      *
      * @return Route Current route
      */
-    public function current() // : Route
+    public function current() : Route
     {
         return \current( $this->routes );
     }
@@ -78,7 +78,7 @@ Class RouteCollection Implements CollectionInterface
      *
      * @return string Route name
      */
-    public function key() // : string
+    public function key() : string
     {
       return \key( $this->routes );
     }
@@ -111,6 +111,16 @@ Class RouteCollection Implements CollectionInterface
     public function valid() : bool
     {
         return \current( $this->routes ) !== false;
+    }
+
+    /**
+     * Returns the number of routes in this collection
+     *
+     * @return int Route count
+     */
+    public function count() : int
+    {
+        return \count( $this->routes );
     }
 
     /**
