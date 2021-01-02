@@ -2,7 +2,10 @@
 
 namespace Routing\Parser;
 
-use \Routing\Exception\{ FileNotFoundException, InvalidFileException };
+use Routing\{
+    Route,
+    Collection\RouteCollection
+};
 
 /**
  * Class responsible for loading routes from .json files
@@ -15,9 +18,15 @@ Class JsonParser Implements ParserInterface
     /**
      * Allowed HTTP methods
      *
-     * @var array HTTP_METHODS HTTP verbs
+     * @var string[] HTTP_METHODS HTTP verbs
      */
-    private const HTTP_METHODS = [ 'GET', 'POST', 'PUT', 'DELETE', 'UPDATE' ];
+    const HTTP_METHODS = [
+        'GET',
+        'POST',
+        'PUT',
+        'DELETE',
+        'UPDATE'
+    ];
 
     /**
      * The regex used to strip out URL args
@@ -29,109 +38,79 @@ Class JsonParser Implements ParserInterface
     /**
      * Parse the given json routes file
      *
-     * @throws \Routing\Exception\FileNotFoundException
-     * @throws \Routing\Exception\InvalidFileException
-     * @param  string $filename Path to file
-     * @return array            Routes array
+     * @param string $filename Path to file
+     * @return RouteCollection Route collection
      */
-    public function parseFile( string $filename ) : array
+    public function parse( string $filename ) : RouteCollection
     {
-        if ( !\is_file( $filename ) || !\is_readable( $filename ) ) {
-            throw new FileNotFoundException( "The routes file: $filename could not be found or was not readable!" );
+        $routes = new RouteCollection();
+
+        $json = $this->loadJson( $filename );
+
+        // Nothing to do
+        if ( empty( $json ) ) {
+            return $routes;
         }
 
-        $content = \file_get_contents( $filename ) ?: '';
-
-        // No content, bail early
-        if ( empty( $content ) ) {
-            return [];
-        }
-
-        $content = \json_decode( $content, true, 4 );
-
-        if ( $content === null || \json_last_error() !== \JSON_ERROR_NONE ) {
-            throw new InvalidFileException( "The routes file: $filename is not a valid JSON file!" );
-        }
-
-        $parsed_routes = [];
-
-        // Build the routes
-        foreach ( $content as $name => $route ) {
-
-            // If the name is already in use
-            if ( empty( $name ) || isset( $parsed_routes[$name] ) ) {
-                $name = \uniqid( $name ?: '_' );
-            }
-
-            if ( !\is_array( $route ) ) {
-                throw new InvalidFileException( "The route: $name is invalid and cannot be processed" );
-            }
-
-            // Nothing to do
-            if ( empty( $route ) ) {
+        foreach ( $json as $name => $contents ) {
+            if ( empty( $contents['path'] ) || empty( $contents['handler'] ) ) {
                 continue;
             }
 
-            $parsed_routes[$name] = $this->convert( $route );
+            $routes->add( $name, $this->convert( $contents ) );
         }
 
-        return $parsed_routes;
+        return $routes;
     }
 
     /**
-     * Converts the file route definition into a standardised format
+     * Attempts to load the given JSON file
      *
-     * @param  array $route Route file definition
-     * @return array        Standardised definition
+     * @param string $filename JSON file
+     * @return array           JSON data
      */
-    private function convert( array $route ) : array
+    private function loadJson( string $filename ) : array
     {
-        $standard = [];
+        if ( !\file_exists( $filename ) ) {
+            return [];
+        }
 
-        // Get the method
-        if ( !empty( $route['methods'] ) ) {
+        $raw = \file_get_contents( $filename );
 
-            if ( \is_array( $route['methods'] ) ) {
-                $methods = $route['methods'];
-            } else {
-                $methods = [ $route['methods'] ];
-            }
+        // Nothing here, exit out
+        if ( empty( $raw ) ) {
+            return [];
+        }
 
-            $methods = \array_map( '\strtoupper', $methods );
+        $json = \json_decode( $raw, true, 3 );
 
-            // Strip out invalid methods
-            $methods = \array_intersect( self::HTTP_METHODS, $methods );
+        return \json_last_error() === \JSON_ERROR_NONE ? $json : [];
+    }
 
-            $standard['methods'] = ( $methods ?: [ 'GET' ] );
+    /**
+     * Converts the JSON array into a Route object
+     *
+     * @param  array $route Route JSON
+     * @return Route        Route definition
+     */
+    private function convert( array $json ) : Route
+    {
+        $route = new Route;
+
+        // Parse regex
+        // TODO: Parse regular expression
+
+        // Allowed HTTP verbs only
+        if ( !empty( $json['methods'] ) && \is_array( $json['methods'] ) ) {
+            $route->methods = \array_intersect( $json['methods'], self::HTTP_METHODS );
         } else {
-            $standard['methods'] = [ 'GET' ];
+            $route->methods = [ 'GET' ];
         }
 
-        // Get the path
-        if ( empty( $route['path'] ) || !is_string( $route['path'] ) ) {
-            throw new InvalidFileException( 'One or more routes are missing the \'path\' property!' );
-        } else {
-            $standard['path'] = $this->parseRoute( $route['path'], $standard['args'] );
-        }
+        // Controller/handler function
+        $route->callable = \explode( '::', $json['handler'] );
 
-        // Get the controller
-        if ( empty( $route['handler'] ) || !is_string( $route['handler'] ) ) {
-            throw new InvalidFileException( 'One or more routes are missing the \'handler\' property!' );
-        }
-
-        $handler = \explode( '::', $route['handler'] );
-
-        // If no method, default to `index()`
-        if ( empty( $handler[1] ) ) {
-            $handler[1] = 'index';
-        }
-
-        $standard['handler'] = [
-            'class'   => $handler[0],
-            'method'  => $handler[1]
-        ];
-
-        return $standard;
+        return $route;
     }
 
     /**
