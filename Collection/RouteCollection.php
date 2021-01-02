@@ -30,6 +30,90 @@ Class RouteCollection Implements CollectionInterface
     }
 
     /**
+     * Adds a new route to the collection
+     *
+     * @param string $name Route identifier
+     * @param Route $route Route definition
+     * @return void        N/a
+     */
+    public function add( string $name, Route $route ) : void
+    {
+        $this->routes[$name] = $route;
+    }
+
+    /**
+     * Gets the named route from the collection
+     *
+     * @param string $name Route identifier
+     * @return Route|null  Route definition
+     */
+    public function get( string $name ) : ?Route
+    {
+        return $this->routes[$name] ?? null;
+    }
+
+    /**
+     * Removes the named route from the collection
+     *
+     * @param string $name Route identifier
+     * @return void        N/a
+     */
+    public function remove( string $name ) : void
+    {
+        unset( $this->routes[$name] );
+    }
+
+    /**
+     * Returns the current route
+     *
+     * @return Route Current route
+     */
+    public function current() // : Route
+    {
+        return \current( $this->routes );
+    }
+
+    /**
+     * Returns the current route name
+     *
+     * @return string Route name
+     */
+    public function key() // : string
+    {
+      return \key( $this->routes );
+    }
+
+    /**
+     * Move the pointer to the next element
+     *
+     * @return void N/a
+     */
+    public function next() : void
+    {
+        \next( $this->routes );
+    }
+
+    /**
+     * Reset the pointer to the first element
+     *
+     * @return void N/a
+     */
+    public function rewind() : void
+    {
+        \reset( $this->routes );
+    }
+
+    /**
+     * Check if the current position is valid
+     *
+     * @return bool Valid position
+     */
+    public function valid() : bool
+    {
+        return \current( $this->routes ) !== false;
+    }
+
+    /**
      * Compiles the regex for the given HTTP method
      *
      * @param string $method (Optional) HTTP method
