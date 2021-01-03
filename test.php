@@ -1,14 +1,18 @@
 <?php
 
-require_once __DIR__ . '/parser/ParserInterface.php';
-require_once __DIR__ . '/parser/JsonParser.php';
+require_once __DIR__ . '/Collection/CollectionInterface.php';
+require_once __DIR__ . '/Collection/RouteCollection.php';
+require_once __DIR__ . '/Parser/ParserInterface.php';
+require_once __DIR__ . '/Parser/JsonParser.php';
 require_once __DIR__ . '/Dispatcher.php';
+require_once __DIR__ . '/Route.php';
 
 
-$parser = new \Routing\Parser\JsonParser();
-$dispatcher = new \Routing\Dispatcher( $parser );
+$dispatcher = new \Routing\Dispatcher(
+    new \Routing\Parser\JsonParser()
+);
 
-$dispatcher->loadFile( __DIR__ . '/test.routes.json' );
+$dispatcher->load( __DIR__ . '/test.routes.json' );
 
 // Should return the 'home' route
 $dispatcher->dispatch( "GET", '/' );
