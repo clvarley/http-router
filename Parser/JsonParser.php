@@ -128,7 +128,7 @@ Class JsonParser Implements ParserInterface
         $path = \rtrim( $path, " \n\r\t\0\x0B\\/" );
 
         // No route, assume root
-        if ( empty( $route ) ) {
+        if ( empty( $path ) ) {
             $route->regex = '/';
             return;
         }
