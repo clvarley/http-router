@@ -82,7 +82,7 @@ Class JsonParser Implements ParserInterface
             return [];
         }
 
-        $json = \json_decode( $raw, true, 3 );
+        $json = \json_decode( $raw, true, 4 );
 
         return \json_last_error() === \JSON_ERROR_NONE ? $json : [];
     }
@@ -90,15 +90,15 @@ Class JsonParser Implements ParserInterface
     /**
      * Converts the JSON array into a Route object
      *
-     * @param  array $route Route JSON
-     * @return Route        Route definition
+     * @param array $route Route JSON
+     * @return Route       Route definition
      */
     private function convert( array $json ) : Route
     {
         $route = new Route;
 
         // Parse regex
-        // TODO: Parse regular expression
+        $this->parseRoute( $json['path'], $route );
 
         // Allowed HTTP verbs only
         if ( !empty( $json['methods'] ) && \is_array( $json['methods'] ) ) {
@@ -119,25 +119,26 @@ Class JsonParser Implements ParserInterface
      * The args parameter will be filled with the details of any arguments
      * this route takes
      *
-     * @param  string $route  Route path
-     * @param  array  $args   Route arguments
-     * @return string         Regular expression
+     * @param string $path Route path
+     * @param Route $route Route object
+     * @return void        N/a
      */
-    private function parseRoute( string $route, &$args = [] ) : string
+    private function parseRoute( string $path, Route $route ) : void
     {
-        $route = \rtrim( $route, " \n\r\t\0\x0B\\/" );
+        $path = \rtrim( $path, " \n\r\t\0\x0B\\/" );
 
         // No route, assume root
         if ( empty( $route ) ) {
-            return '/';
+            $route->regex = '/';
+            return;
         }
 
         // Route placeholders?
-        if ( !\preg_match_all( self::ROUTE_REGEX, $route, $matches, \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE ) ) {
-            return $route;
+        if ( !\preg_match_all( self::ROUTE_REGEX, $path, $matches, \PREG_SET_ORDER | \PREG_OFFSET_CAPTURE ) ) {
+            return;
         }
 
-        $route = '';
+        $regex = '';
 
         /**
          * Reference:
@@ -147,40 +148,37 @@ Class JsonParser Implements ParserInterface
          * $match['type'] - The type of the placeholder
          */
         foreach ( $matches as $match ) {
-
             if ( empty( $match['name'] ) ) {
-                $route .= \preg_quote( $match[0][0] );
+                $regex .= \preg_quote( $match[0][0] );
                 continue;
             }
 
             // Atomic groups were messing with names :(
-            $regex = '(';
+            $regex .= '(';
 
             // Use appropriate regex
             switch ( $match['type'][0] ) {
                 case 'i':
                     $regex .= '\d+';
-                break;
+                    break;
 
                 case 's':
                 default:
                     $regex .= '[a-zA-Z0-9-_]+';
-                break;
+                    break;
             }
 
             $regex .= ')';
 
             // Register the param
-            $args[] = [
+            $route->args[] = [
                 'name'    => $match['name'][0],
-                'offset'  => \strlen( $route ),
-                'length'  => \strlen( $regex ),
                 'type'    => $match['type'][0] ?: 's'
             ];
-
-            $route .= $regex;
         }
 
-        return $route;
+        $route->regex = $regex;
+
+        return;
     }
 }

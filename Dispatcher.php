@@ -103,8 +103,10 @@ Class Dispatcher
         $route = $this->routes->get( $matches[0]['MARK'] );
 
         // Handle params (if any)
-        foreach ( $route->args as $name => $param ) {
-            $args[$name] = $matches[0][$index + 1] ?? null;
+        $args = [];
+
+        foreach ( $route->args as $index => $param ) {
+            $args[$param['name']] = $matches[0][$index + 1] ?? null;
         }
 
         return $route;
